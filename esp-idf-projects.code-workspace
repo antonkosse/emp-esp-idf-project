@@ -1,0 +1,27 @@
+{
+	"folders": [
+		{
+			"path": "three-led-blink"
+		},
+		{
+			"path": "2.5-fan"
+		}
+	],
+	"settings": {
+		"cmake.autoSelectActiveFolder": false,
+		"cmake.options.advanced": {
+			"build": {
+				"statusBarVisibility": "inherit",
+				"inheritDefault": "hidden"
+			},
+			"launch": {
+				"statusBarVisibility": "inherit",
+				"inheritDefault": "hidden"
+			},
+			"debug": {
+				"statusBarVisibility": "inherit",
+				"inheritDefault": "hidden"
+			}
+		}
+	}
+}
