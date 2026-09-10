@@ -29,7 +29,6 @@ static volatile bool fan_is_on = false;
 static esp_timer_handle_t cycle_timer;
 static esp_timer_handle_t heartbeat_timer;
 
-// ------------------------------ helpers -------------------------------
 
 static void set_relay(bool on) {
     fan_is_on = on;
@@ -45,7 +44,6 @@ static void schedule_next(uint64_t delay_ms) {
     esp_timer_start_once(cycle_timer, delay_ms * 1000ULL);
 }
 
-// ---------------------------- timer callbacks ---------------------------
 
 // Self-rescheduling: flips the relay once, then arms itself for whichever
 // duration comes next. Runs in the esp_timer service task, independent of
@@ -70,7 +68,7 @@ static void heartbeat_cb(void *arg) {
         esp_task_wdt_add(NULL);   // subscribes the currently-running task
         subscribed = true;
     }
-    esp_task_wdt_reset();
+    esp_task_wdt_reset(); // resets the time telling the watchdog that the program still breathes
 
     bool closed = feedback_says_closed();
     if (closed != fan_is_on) {
@@ -79,13 +77,12 @@ static void heartbeat_cb(void *arg) {
     }
 }
 
-// ------------------------------- setup ---------------------------------
 
 static void init_gpio(void) {
     gpio_config_t ctrl = {
         .pin_bit_mask = 1ULL << RELAY_CTRL_PIN,
         .mode = GPIO_MODE_OUTPUT,
-        .intr_type = GPIO_INTR_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE, // disable interupts
     };
     gpio_config(&ctrl);
 
@@ -93,7 +90,7 @@ static void init_gpio(void) {
         .pin_bit_mask = 1ULL << FEEDBACK_PIN,
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_ENABLE,
-        .intr_type = GPIO_INTR_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE, // disable interrupts per edge change
     };
     gpio_config(&fb);
 
@@ -103,9 +100,9 @@ static void init_gpio(void) {
 
 static void init_watchdog(void) {
     esp_task_wdt_config_t cfg = {
-        .timeout_ms = WDT_TIMEOUT_S * 1000,
-        .idle_core_mask = 0,
-        .trigger_panic = true,
+        .timeout_ms = WDT_TIMEOUT_S * 1000, // period for watchdog check
+        .idle_core_mask = 0, // tells watchdog which tasks whould be watched for idle
+        .trigger_panic = true, // actually reset the chip on panic
     };
     esp_task_wdt_reconfigure(&cfg);
 }
@@ -127,7 +124,6 @@ static void init_timers(void) {
     esp_timer_start_periodic(heartbeat_timer, HEARTBEAT_MS * 1000ULL);
 }
 
-// ------------------------------ public API ------------------------------
 
 void fan_controller_init(void) {
     init_gpio();
