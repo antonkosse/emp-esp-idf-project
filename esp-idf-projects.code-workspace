@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "2.5-fan"
+		},
+		{
+			"path": "traffic-light-blink"
 		}
 	],
 	"settings": {
