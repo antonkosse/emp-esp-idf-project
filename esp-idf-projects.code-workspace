@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "traffic-light-blink"
+		},
+		{
+			"path": "3.1-ADC"
 		}
 	],
 	"settings": {
