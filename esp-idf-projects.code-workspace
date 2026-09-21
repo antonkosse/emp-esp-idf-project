@@ -11,6 +11,9 @@
 		},
 		{
 			"path": "3.1-ADC"
+		},
+		{
+			"path": "3.2-ADC-transformation"
 		}
 	],
 	"settings": {
