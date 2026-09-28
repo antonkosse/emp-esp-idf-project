@@ -17,6 +17,9 @@
 		},
 		{
 			"path": "3.3-PWM-handling"
+		},
+		{
+			"path": "3.4-pwm-buzzer"
 		}
 	],
 	"settings": {
