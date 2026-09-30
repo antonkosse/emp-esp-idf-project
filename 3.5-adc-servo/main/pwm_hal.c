@@ -1,0 +1,58 @@
+#include "pwm_hal.h"
+#include "driver/gpio.h"
+#include "esp_rom_gpio.h"
+#include "soc/gpio_sig_map.h"
+#include "soc/ledc_struct.h"
+#include "soc/system_struct.h"
+
+/* Кадр RC: T = 20 мс → 50 Гц. Розрядність 13 біт: 8192 відліки на кадр. */
+#define PWM_RES_BITS 13
+#define PWM_PERIOD_TICKS (1u << PWM_RES_BITS)
+#define PWM_HZ 50
+#define APB_HZ 80000000u
+#define PERIOD_US 20000u
+/* div у форматі Q10.8: 80 МГц / (50 Гц · 8192) = 195.3125 */
+#define CLK_DIV ((uint32_t)(((uint64_t)APB_HZ << 8) / (PWM_HZ * PWM_PERIOD_TICKS)))
+static void pwm_hw_enable_clock(void)
+{
+    /* --- такт блоку LEDC (міст SYSTEM) --- */
+    SYSTEM.perip_clk_en0.ledc_clk_en = 1;
+    SYSTEM.perip_rst_en0.ledc_rst = 1;
+    SYSTEM.perip_rst_en0.ledc_rst = 0;
+    LEDC.conf.apb_clk_sel = 1; /* APB 80 МГц */
+    LEDC.conf.clk_en = 1;
+}
+void pwm_hw_init(int gpio)
+{
+    pwm_hw_enable_clock();
+    /* --- таймер: період кадру 20 мс, далі не змінюється --- */
+    LEDC.timer_group[0].timer[0].conf.duty_resolution = PWM_RES_BITS;
+    LEDC.timer_group[0].timer[0].conf.clock_divider = CLK_DIV;
+    LEDC.timer_group[0].timer[0].conf.pause = 0;
+    LEDC.timer_group[0].timer[0].conf.rst = 0;
+    LEDC.timer_group[0].timer[0].conf.low_speed_update = 1;
+    /* --- канал: HIGH від відліку 0, період бере з таймера 0 --- */
+    LEDC.channel_group[0].channel[0].hpoint.hpoint = 0;
+    LEDC.channel_group[0].channel[0].conf0.timer_sel = 0;
+    LEDC.channel_group[0].channel[0].conf0.sig_out_en = 1;
+    LEDC.channel_group[0].channel[0].conf0.idle_lv = 0;
+    LEDC.channel_group[0].channel[0].conf0.low_speed_update = 1;
+    /* --- матриця: вихід каналу 0 на вибраний GPIO (лінія уставки) --- */
+    gpio_reset_pin(gpio);
+    gpio_set_direction(gpio, GPIO_MODE_OUTPUT);
+    esp_rom_gpio_connect_out_signal((uint32_t)gpio, LEDC_LS_SIG_OUT0_IDX, false, false);
+}
+void pwm_hw_set_pulse_us(uint32_t pulse_us)
+{
+    /* --- ширина HIGH = уставка кута, мкс; частота таймера не чіпається --- */
+    if (pulse_us > PERIOD_US)
+    {
+        pulse_us = PERIOD_US;
+    }
+    /* 1500 мкс / 20000 мкс · 8192 ≈ 614 відліків; у полі duty — зі зсувом 4 */
+    const uint32_t duty = (pulse_us * PWM_PERIOD_TICKS) / PERIOD_US;
+    LEDC.channel_group[0].channel[0].duty.duty = duty << 4;
+    LEDC.channel_group[0].channel[0].conf1.duty_start = 1;
+    LEDC.channel_group[0].channel[0].conf0.sig_out_en = 1;
+    LEDC.channel_group[0].channel[0].conf0.low_speed_update = 1;
+}
