@@ -20,6 +20,9 @@
 		},
 		{
 			"path": "3.4-pwm-buzzer"
+		},
+		{
+			"path": "3.5-adc-servo"
 		}
 	],
 	"settings": {
