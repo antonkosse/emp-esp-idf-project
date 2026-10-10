@@ -23,6 +23,9 @@
 		},
 		{
 			"path": "3.5-adc-servo"
+		},
+		{
+			"path": "module-3-project-calculator"
 		}
 	],
 	"settings": {
