@@ -26,6 +26,9 @@
 		},
 		{
 			"path": "module-3-project-calculator"
+		},
+		{
+			"path": "4.1-uart-esp32"
 		}
 	],
 	"settings": {
