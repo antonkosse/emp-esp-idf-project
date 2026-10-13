@@ -152,3 +152,54 @@ STM32 commands: `LED ON | LED OFF | LED TOGGLE`, `PING`, `HELP`, `STATUS`, `TIME
 - [ ] Optional: drive the on-board RGB LED with `led_strip` (RMT) instead of the external LED.
 - [ ] Move the button debounce into a portable module shared with the STM32
       (inputs: pin level + ms tick; ESP32 `esp_timer_get_time()/1000`, STM32 `HAL_GetTick()`).
+
+---
+
+## Self-check
+
+Answers are Base64-encoded (decode with any Base64 tool, e.g. `certutil -decode` or an online decoder) so they can't be read at a glance.
+
+**Q1.** Why can the ESP32 put UART2 on GPIO17/16 (or almost any pin), while the STM32 needs specific pins?
+
+`VGhlIEVTUDMyIGhhcyBhIEdQSU8gbWF0cml4IHRoYXQgcm91dGVzIHBlcmlwaGVyYWwgc2lnbmFscyB0byBhbG1vc3QgYW55IEdQSU8gKHVhcnRfc2V0X3BpbikuIFNUTTMyIHBpbnMgaGF2ZSBmaXhlZCBhbHRlcm5hdGUgZnVuY3Rpb25zIGZyb20gdGhlIGRhdGFzaGVldCB0YWJsZS4=`
+
+**Q2.** How does the master tell a reply to its command apart from an event sent by the STM32 on its own?
+
+`UmVwbGllcyBzdGFydCB3aXRoIE9LIG9yIEVSUiAoZXhhY3RseSBvbmUgcGVyIGNvbW1hbmQpLiBVbnNvbGljaXRlZCBsaW5lcyBzdGFydCB3aXRoIElORk8u`
+
+**Q3.** Why does link_transact_once() handle INFO lines and keep waiting instead of treating them as unknown?
+
+`SWYgdGhlIFNUTTMyIGJ1dHRvbiBpcyBwcmVzc2VkIHdoaWxlIHRoZSBtYXN0ZXIgd2FpdHMgZm9yIGEgcmVwbHksIHRoZSBJTkZPIEVTUF9MRUQgbGluZSBhcnJpdmVzIGluIHRoZSBtaWRkbGUgb2YgdGhhdCBleGNoYW5nZS4gSGFuZGxpbmcgaXQgdGhlcmUgKG5vdGVfc2xhdmVfbGluZSkgbWFrZXMgdGhlIExFRCBzd2l0Y2ggYW5kIGtlZXBzIHdhaXRpbmcgZm9yIHRoZSByZWFsIE9LL0VSUjsgb3RoZXJ3aXNlIHRoZSBldmVudCB3b3VsZCBiZSBsb3N0Lg==`
+
+**Q4.** Button between GPIO5 and GND with the internal pull-up: what does gpio_get_level() return when pressed? Why use diagonal legs of a 4-leg button?
+
+`MCB3aGVuIHByZXNzZWQsIDEgd2hlbiByZWxlYXNlZCAoYWN0aXZlIGxvdykuIFRoZSB0d28gbGVncyBvbiBlYWNoIHNpZGUgYXJlIGNvbm5lY3RlZCBpbnNpZGUgdGhlIHN3aXRjaDsgdXNpbmcgYSBzYW1lLXNpZGUgcGFpciB3b3VsZCBtYWtlIHRoZSBidXR0b24gcGVybWFuZW50bHkgY2xvc2VkLg==`
+
+**Q5.** Why can't gpio_set_level() switch the DevKit's built-in RGB LED?
+
+`SXQgaXMgYW4gYWRkcmVzc2FibGUgV1MyODEyLXR5cGUgTEVEIHdpdGggaXRzIG93biBjb250cm9sbGVyOiBpdCBleHBlY3RzIDI0IGJpdHMgKEcsUixCKSBlbmNvZGVkIGFzIHNob3J0ICgwKSBhbmQgbG9uZyAoMSkgcHVsc2VzIHdpdGggc3ViLW1pY3Jvc2Vjb25kIHRpbWluZy4gSXQgbmVlZHMgdGhlIFJNVCBwZXJpcGhlcmFsLCBlLmcuIHZpYSB0aGUgbGVkX3N0cmlwIGNvbXBvbmVudC4=`
+
+**Q6.** At 115200 baud 8N1: how long is one bit, one frame, and the maximum byte rate?
+
+`MSBiaXQgPSAxLzExNTIwMCA9IDguNjggdXMuIDhOMSA9IDEgc3RhcnQgKyA4IGRhdGEgKyAxIHN0b3AgPSAxMCBiaXRzID0gODYuOCB1cyBwZXIgZnJhbWUuIE1heCA9IDExNTIwMC8xMCA9IDExNTIwIGJ5dGVzL3Mu`
+
+**Q7.** Why does a baud-rate mismatch break the end of a frame first, and roughly at what total error does 8N1 fail?
+
+`VGhlIHJlY2VpdmVyIHJlLXN5bmNocm9uaXNlcyBvbmx5IG9uIHRoZSBzdGFydC1iaXQgZWRnZSwgc28gaXRzIHRpbWluZyBlcnJvciBhY2N1bXVsYXRlcyBiaXQgYnkgYml0LiBUaGUgc3RvcC1iaXQgc2FtcGxlIGF0IDkuNSBiaXQtdGltZXMgbGVhdmVzIGl0cyBiaXQgd2hlbiA5LjUgKiBlcnJvciA+IDAuNSBiaXQsIGkuZS4gYXJvdW5kIDUgJSB0b3RhbCBtaXNtYXRjaC4gS2VlcCBlYWNoIHNpZGUgdW5kZXIgYWJvdXQgMiAlLg==`
+
+**Q8.** Why does the ESP32 just poll uart_read_bytes() while the STM32 needs an interrupt callback, a flag and re-arming?
+
+`VGhlIEVTUC1JREYgVUFSVCBkcml2ZXIgYWxyZWFkeSBidWZmZXJzIGluY29taW5nIGJ5dGVzIGluIGEgcmluZyBidWZmZXIgKHVhcnRfZHJpdmVyX2luc3RhbGwpLiBTVE0zMiBIQUwgb25seSBkZWxpdmVycyB0aGUgYnl0ZSB2aWEgYW4gaW50ZXJydXB0OyBidWZmZXJpbmcgYW5kIGhhbmRpbmcgaXQgdG8gdGhlIG1haW4gbG9vcCBpcyB5b3VyIGpvYi4=`
+
+**Q9.** Using the CH340 to watch the link: which CH340 pin goes where, what must you never connect, and where must the jumper be?
+
+`Q0gzNDAgUlhEIHRvIHRoZSB3aXJlIHlvdSB3YW50IHRvIHdhdGNoLCBDSDM0MCBHTkQgdG8gY29tbW9uIEdORCwgb3BlbiBpdHMgQ09NIHBvcnQgYXQgMTE1MjAwLiBOZXZlciBjb25uZWN0IGl0cyBUWEQgdG8gYSB3aXJlIHRoYXQgaXMgYWxyZWFkeSBkcml2ZW4uIEp1bXBlciBvbiBWQ0MtM1YzLCBiZWNhdXNlIDUgViBsb2dpYyB3b3VsZCBkYW1hZ2UgdGhlIEVTUDMyLVMzLg==`
+
+**Q10.** Why does an STM32 KEY press made while you are typing a console command only take effect after Enter?
+
+`bGlua19kcmFpbigpIGFuZCBidXR0b25fcG9sbCgpIGFyZSBvbmx5IGNhbGxlZCBmcm9tIGNvbnNvbGVfcmVhZF9saW5lKCkgd2hpbGUgdGhlIHR5cGVkIGxpbmUgaXMgZW1wdHk7IGR1cmluZyB0eXBpbmcgdGhlIG1hc3RlciBkb2VzIG5vdCByZWFkIHVuc29saWNpdGVkIGxpbmVzIGZyb20gdGhlIFVBUlQu`
+
+**Q11.** Your LED stays dark. Name two hardware causes to check before suspecting code.
+
+`TEVEIHJldmVyc2VkIChsb25nIGxlZy9hbm9kZSBtdXN0IGZhY2UgdGhlIEdQSU8gc2lkZSwgZmxhdCBzaWRlL2NhdGhvZGUgdG8gR05EKSwgbWlzc2luZyBvciB3cm9uZyByZXNpc3Rvci9jb25uZWN0aW9uLCBvciBpdHMgR05EIG5vdCB0aWVkIHRvIGFuIEVTUDMyIEdORCBwaW4gKGEgYnJlYWRib2FyZCByYWlsIGlzIG9ubHkgY29tbW9uIGlmIHdpcmVkKS4=`
+
