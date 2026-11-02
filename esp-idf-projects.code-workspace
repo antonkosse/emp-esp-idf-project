@@ -29,6 +29,9 @@
 		},
 		{
 			"path": "4.1-uart-esp32"
+		},
+		{
+			"path": "4.2-i2c-led"
 		}
 	],
 	"settings": {
