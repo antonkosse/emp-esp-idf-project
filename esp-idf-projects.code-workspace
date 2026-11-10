@@ -32,6 +32,9 @@
 		},
 		{
 			"path": "4.2-i2c-led"
+		},
+		{
+			"path": "4.3-i2c-clock-reader-and-display"
 		}
 	],
 	"settings": {
